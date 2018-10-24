@@ -29,17 +29,17 @@ def convert(pngFile):
 
 	"""initialize mapping of colors"""
 	colormap = {}
-	colors = pic.getcolors()
+	colors = [x[1] for x in pic.getcolors()]
+	colors = sorted(colors,key=lambda x: x[0]+x[1]+x[2],reverse=True)
 
-	for color in pic.getcolors():
+	for color in colors:
 		index = max(list(colormap.values()),default=0) + 1
-		rgba=color[1]
-		alpha=color[1][3]
+		alpha=color[3]
 
 		if(alpha==0 and 0 not in colormap):
 			index = 0
 
-		colormap[rgba]=index
+		colormap[color]=index
 
 	outArray = []
 	for colBase in range(0,cols,8):
