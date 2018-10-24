@@ -1,0 +1,81 @@
+#!/usr/bin/python3
+
+import sys
+from PIL import Image
+import argparse
+
+def eprint(*args, **kwargs):
+	"""prints to stderr"""
+	print(*args,file=sys.stderr, **kwargs)
+
+def convert(pngFile):
+	"""converts the image in [pngFile] to an array of bytes, 2 bits per pixel"""
+	pic=Image.open(pngFile)	
+	rows=pic.height
+	cols=pic.width
+	
+	if(len(pic.getcolors()) > 4):
+		eprint("Too many colors (max. 4, transparency included)");
+		return None
+
+	if cols % 8 != 0:
+		eprint("Invalid number of columns (must be dividable by 8):",cols)
+		return None
+	if rows % 8 != 0:
+		eprint("Invalid number of rows (must be dividable by 8):",rows)
+		return None
+
+	
+
+	"""initialize mapping of colors"""
+	colormap = {}
+	colors = pic.getcolors()
+
+	for color in pic.getcolors():
+		index = max(list(colormap.values()),default=0) + 1
+		rgba=color[1]
+		alpha=color[1][3]
+
+		if(alpha==0 and 0 not in colormap):
+			index = 0
+
+		colormap[rgba]=index
+
+	outArray = []
+	for colBase in range(0,cols,8):
+		for row in range(rows):
+			for colOffset in range(0,8):
+				col = colBase + colOffset
+				pixelColor=colormap[pic.getpixel((col,row))]
+				outArray.append(pixelColor)
+	return outArray
+
+def serialize(colorArray):
+	byteCode = [0] * int(len(colorArray)/4)
+
+	prefix = 'unsigned char sprites[] = {'
+	postfix = '};'
+	
+	for rowIndex in range(int(len(colorArray)/8)):
+		for colIndex in range(8):
+			byte0 = byteCode[2*rowIndex]
+			byte1 = byteCode[2*rowIndex+1]
+			pixelIndex = rowIndex*8 + colIndex
+
+			if colorArray[pixelIndex] & 1:
+				byte0 = byte0 | (1 << colIndex)
+			if colorArray[pixelIndex] & 2:
+				byte1 = byte1 | (1 << colIndex)
+			byteCode[2*rowIndex] = byte0
+			byteCode[2*rowIndex+1] = byte1
+	return prefix + ', '.join('0x{:02x}'.format(x) for x in byteCode) + postfix
+
+parser=argparse.ArgumentParser()
+parser.add_argument('infile')
+parser.add_argument('-o',dest='outfile', default='out.c')
+
+args=parser.parse_args()
+
+outfile = open(args.outfile,'w')
+outfile.write(serialize(convert(args.infile)))
+outfile.close()
