@@ -44,7 +44,7 @@ def convert(pngFile):
 	outArray = []
 	for colBase in range(0,cols,8):
 		for row in range(rows):
-			for colOffset in range(0,8):
+			for colOffset in reversed(range(0,8)):
 				col = colBase + colOffset
 				pixelColor=colormap[pic.getpixel((col,row))]
 				outArray.append(pixelColor)
