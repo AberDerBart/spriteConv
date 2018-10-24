@@ -54,7 +54,7 @@ def serialize(colorArray):
 	byteCode = [0] * int(len(colorArray)/4)
 
 	prefix = 'unsigned char sprites[] = {'
-	postfix = '};'
+	postfix = '};\n'
 	
 	for rowIndex in range(int(len(colorArray)/8)):
 		for colIndex in range(8):
