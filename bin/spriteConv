@@ -70,12 +70,16 @@ def serialize(colorArray):
 			byteCode[2*rowIndex+1] = byte1
 	return prefix + ', '.join('0x{:02x}'.format(x) for x in byteCode) + postfix
 
-parser=argparse.ArgumentParser()
-parser.add_argument('infile')
-parser.add_argument('-o',dest='outfile', default='out.c')
+def main():
+	parser=argparse.ArgumentParser()
+	parser.add_argument('infile')
+	parser.add_argument('-o',dest='outfile', default='out.c')
 
-args=parser.parse_args()
+	args=parser.parse_args()
 
-outfile = open(args.outfile,'w')
-outfile.write(serialize(convert(args.infile)))
-outfile.close()
+	outfile = open(args.outfile,'w')
+	outfile.write(serialize(convert(args.infile)))
+	outfile.close()
+
+if __name__ == "__main__":
+	main()
