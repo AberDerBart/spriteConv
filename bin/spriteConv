@@ -41,33 +41,39 @@ def convert(pngFile):
 
 		colormap[color]=index
 
-	outArray = []
+	pixelValues = []
+	# iterate over 8 pixel wide columns
 	for colBase in range(0,cols,8):
+		# iterate rows in column
 		for row in range(rows):
+			# iterate pixels in row
 			for colOffset in reversed(range(0,8)):
 				col = colBase + colOffset
 				pixelColor=colormap[pic.getpixel((col,row))]
-				outArray.append(pixelColor)
-	return outArray
+				pixelValues.append(pixelColor)
 
-def serialize(colorArray):
-	byteCode = [0] * int(len(colorArray)/4)
+	# write to a byte array in gb format
+	byteCode = [0] * int(len(pixelValues)/4)
 
-	prefix = 'unsigned char sprites[] = {'
-	postfix = '};\n'
-	
-	for rowIndex in range(int(len(colorArray)/8)):
+	for rowIndex in range(int(len(pixelValues)/8)):
 		for colIndex in range(8):
 			byte0 = byteCode[2*rowIndex]
 			byte1 = byteCode[2*rowIndex+1]
 			pixelIndex = rowIndex*8 + colIndex
 
-			if colorArray[pixelIndex] & 1:
+			if pixelValues[pixelIndex] & 1:
 				byte0 = byte0 | (1 << colIndex)
-			if colorArray[pixelIndex] & 2:
+			if pixelValues[pixelIndex] & 2:
 				byte1 = byte1 | (1 << colIndex)
 			byteCode[2*rowIndex] = byte0
 			byteCode[2*rowIndex+1] = byte1
+	
+	return byteCode
+
+def serialize(byteCode):
+	prefix = 'unsigned char sprites[] = {'
+	postfix = '};\n'
+	
 	return prefix + ', '.join('0x{:02x}'.format(x) for x in byteCode) + postfix
 
 def main():
